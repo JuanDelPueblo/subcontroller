@@ -3,7 +3,8 @@ import rospy
 from std_msgs.msg import Float64
 from std_srvs.srv import SetBool, SetBoolResponse  # Assuming a simple success flag response
 from geometry_msgs.msg import Vector3
-from sensor_msgs.msg import ObjectsStamped, CameraInfo, Imu, Image, PoseStamped, Odometry, Path
+from sensor_msgs.msg import PoseStamped, Odometry
+from zed_interfaces.msg import ObjectsStamped
 #!/usr/bin/env python
 
 DEPTH_SPEED = 1
@@ -31,6 +32,7 @@ class SubController:
         self.service = rospy.Service('navigate_to_waypoint', SetBool, self.handle_navigate_request)
         self.target_pose = None
         self.current_pose = None
+        self.objects = []
         self.thrusters_pubishers = []
         self.thruster_values = [0] * 8
         self.moving = [False, False, False] # [depth, rotation, linear]
@@ -60,6 +62,7 @@ class SubController:
         # Initialize Subscribers
         rospy.Subscriber(topics_info['zed_camera']['pose'], PoseStamped, self.zed_pose_callback)
         rospy.Subscriber(topics_info['zed_camera']['odom'], Odometry, self.zed_odom_callback)
+        rospy.Subscriber(topics_info['zed_camera']['objects_stamped'], ObjectsStamped, self.zed_objects_callback)
         
     # Callback functions for the subscribers
     def zed_pose_callback(self, msg):
@@ -68,6 +71,8 @@ class SubController:
     def zed_odom_callback(self, msg):
         self.current_pose = msg.pose
         
+    def zed_objects_callback(self, msg):
+        self.objects = msg.objects
 
     # Move the submarine to the target pose
     def move_submarine(self, current_pose, target_pose):
