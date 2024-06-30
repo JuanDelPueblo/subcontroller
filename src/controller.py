@@ -47,31 +47,32 @@ class SubController:
         
     # Callback functions for the subscribers
     def zed_pose_callback(self, msg):
-        self.target_pose = msg.pose
+        # TODO: Implement the logic to handle the pose data
+        self.current_pose = msg.pose
         
     def zed_odom_callback(self, msg):
         current_pose = msg.pose
         if self.target_pose is not None:
+            # TODO: verify how often the callback is run, may have to change the rate
             self.move_submarine(current_pose, self.target_pose)
         else:
             rospy.loginfo("Target pose is not set. Waiting for a target pose.")
 
     # Move the submarine to the target pose
     def move_submarine(self, current_pose, target_pose):
-        # Assuming we have a function to calculate the required thruster values
+        # TODO: Control depth and orientation separately
         thruster_values = self.calculate_thruster_values(current_pose, target_pose)
         for i in range(0, len(thruster_values)):
             self.thrusters_publishers[i].publish(thruster_values[i])
         self.rate.sleep()
 
     def calculate_thruster_values(self, current_pose, target_pose):
-        # Assuming we have a function to calculate the required thruster values
+        # TODO: Implement the logic to calculate the thruster values if needed
         return [SPEED] * 8
 
     # Handle the navigate request from the service
     def handle_navigate_request(self, req):
-        destination = req.a  # Assuming 'a' is the destination waypoint
-        current_location = req.b  # Assuming 'b' is the current location
+        self.target_pose = req.target_pose  # Assuming 'a' is the destination waypoint
         return SetBoolResponse(True, "Navigation successful")
 
     def run(self):
